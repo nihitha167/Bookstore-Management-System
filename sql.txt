@@ -1,0 +1,75 @@
+1. Show the subject names of books supplied by *supplier2*.
+
+   select CategoryName from Book LEFT JOIN Subject on Book.SubjectID = Subject.SubjectID where Book.SupplierID = 2;
+
+2. Show the name and price of the most expensive book supplied by *supplier3*.
+
+   Select Title,UnitPrice From Book B, Supplier S Where B.SupplierID = S.SupplierID AND B.UnitPrice = (select MAX(B2.UnitPrice) From Book B2, Supplier S2 Where B2.SupplierID = S2.SupplierID AND B2.UnitPrice AND S2.CompanyName = 'Supplier3');
+
+3. Show the unique names of all books ordered by *lastname1 firstname1*.
+
+   select distinct Title from Book where BookID in (select BookID from OrderDetail where OrderID in (select OrderID from Orders where CustomerID  = (select CustomerID from Customer where LastName = 'lastname1' AND FirstName = 'firstname1')));
+
+4. Show the title of books which have more than 10 units in stock.
+
+   Select B.Title from db_book B where B.Quantity > 10;
+
+5. Show the total price *lastname1 firstname1* has paid for the books.
+
+   select sum(Book.UnitPrice * OrderDetail.Quantity) from OrderDetail LEFT JOIN Book on OrderDetail.BookID = Book.BookID where OrderDetail.OrderID in (select OrderID from Orders where CustomerID  = (select CustomerID from Customer where LastName = 'lastname1' AND FirstName = 'firstname1'));
+
+6. Show the names of the customers who have paid less than $80 in totals.
+
+   select c.FirstName, c.LastName FROM Customer c, Orders o, OrderDetail od, Book b where c.CustomerID = o.CustomerID AND od.OrderID = o.OrderID AND b.BookID = od.BookID Group By c.LastName Having SUM(b.UnitPrice*od.Quantity) < 80;
+
+7. Show the name of books supplied by *supplier2*.
+
+   Select Title FROM Book B, Supplier S WHERE B.SupplierID = S.SupplierID AND S.CompanyName = 'supplier2';
+
+8. Show the total price each customer paid and their names.  List the result in descending price.
+
+   Select C.FirstName, C.LastName, SUM(OD.Quantity*B.UnitPrice) AS Total_Price FROM Book B, OrderDetail OD, Orders O, Customer C  WHERE OD.BookID = B.BookID AND O.OrderID = OD.OrderID AND C.CustomerID = O.CustomerID GROUP BY C.CustomerID ORDER BY Total_price DESC
+
+9. Show the names of all the books shipped on 08/04/2016 and their shippers' names.
+
+   Select B.Title, S.ShipperName from Book B, Shipper S, Orders O, OrderDetail OD where B.BookID = OD.BookID and OD.OrderID = O.OrderID and O.ShipperID = S.ShipperID and O.ShippedDate = '2016-08-04';
+
+10. Show the unique names of all the books *lastname1 firstname1* and *lastname4 firstname4* *both* ordered.
+
+   Select Distinct B.Title from Book B, Orders O, OrderDetail OD, Customer C where B.BookID = OD.BookID and OD.OrderID = O.OrderID and O.CustomerID = C.CustomerID and C.FirstName='firstname1' and C.LastName='lastname1' and B.BookID in (select B1.bookID from Book B1, Orders O1, OrderDetail OD1, Customer C1 where B1.BookID = OD1.BookID and OD1.OrderID = O1.OrderID and O1.CustomerID = C1.CustomerID and C1.FirstName='firstname4' and C1.LastName='lastname4');
+
+11. Show the names of all the books *lastname6 firstname6* was responsible for.
+
+    select B.Title from Book B, Employee E, Orders O, OrderDetail OD where OD.BookID = B.BookID and OD.OrderID = O.OrderID and O.EmployeeID = E.EmployeeID and E.FirstName = 'firstname6' and LastName='lastname6';
+
+12. Show the names of all the ordered books and their total quantities.List the result in ascending quantity.
+ 
+    Select b.Title, SUM(od.Quantity) as Total From Book b, OrderDetail od where od.BookID=b.BookID Group By b.Title Order BY Total ASC;
+
+13. Show the names of the customers who ordered at least 2 books.
+
+    select c.FirstName,c.LastName from Customer c, Orders o, OrderDetail od where c.CustomerID = o.CustomerID AND o.OrderID=od.OrderID Group By c.LastName Having SUM(od.Quantity) > 2;
+
+14. Show the name of the customers who have ordered at least a book in *category3* or *category4* and the book names.
+    
+    Select Distinct  c.FirstName,c.LastName, b.Title From Customer c join Orders o On o.CustomerID=c.CustomerID join OrderDetail od ON od.OrderID=o.OrderID join Book b ON b.BookID=od.BookID join Subject s ON s.SubjectID = b.SubjectID where b.SubjectID = 3 OR b.SubjectID = 4;
+
+15. Show the name of the customer who has ordered at least one book written by *author1*.
+
+    Select C.FirstName, C.LastName from Orders O, OrderDetail OD, Customer C, Book B where O.OrderID = OD.OrderID and O.CustomerID = C.CustomerID and OD.BookID = B.BookID and B.Author = 'author1';
+
+16. Show the name and total sale (price of orders) of each employee.
+
+    Select E.FirstName, E.LastName, SUM(B.UnitPrice * OD.Quantity) as OrderPrice from Book B, Employee E, Orders O, OrderDetail OD where O.OrderID = OD.OrderID and B.BookID = OD.BookID and O.EmployeeID = E.EmployeeID groub by E.EmployeeID;
+
+17. Show the book names and their respective quantities for open orders (the orders which have not been shipped) at midnight 08/04/2016.
+
+    Select B.Title, sum(OD.Quantity) as Total FROM Book B, Orders O, OrderDetail OD where B.BookID = OD.BookID and O.OrderID = OD.OrderID and (O.ShippedDate is null or O.ShippedDate > '2016-04-08') group by B.Title;
+
+18. Show the names of customers who have ordered more than 1 book and the corresponding quantities.  List the result in the descending quantity.
+
+    Select C.FirstName, C.LastName, SUM(OD.Quantity) AS TotalBooks FROM Customer C, Orders O, OrderDetail OD WHERE OD.OrderID = O.OrderID AND O.CustomerID = C.CustomerID group by C.CustomerID having TotalBooks > 1 order by TotalBooks DESC
+
+19. Show the names of customers who have ordered more than 3 books and their respective telephone numbers.
+
+    Select C.FirstName, C.LastName, C.Phone from Customer C, Orders O, OrderDetail OD where OD.OrderID = O.OrderID and O.CustomerID = C.CustomerID group by C.CustomerID having SUM(OD.Quantity) >3;
